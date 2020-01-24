@@ -62,11 +62,34 @@ let Chaincode = class {
 		}
 }
 
+// 	async queryAllHealthRecords(stub, args) {
+// 		// const startKey = 'D' + args[4] + '1';
+// 		// const endKey = 'D' + args[4] + '999';
+// 		const startKey = 'D1';
+// 		const endKey = 'D999999';
+// 		const allResults = [];
+// 		for await (const {key, value} of stub.getStateByRange(startKey, endKey)) {
+// 		const strValue = Buffer.from(value).toString('utf8');
+// 		let healthRecord;
+// 		try {
+// 			healthRecord = JSON.parse(strValue);
+// 		} catch (err) {
+// 			console.log(err);
+// 			healthRecord = strValue;
+// 		}
+// 		allResults.push({ Key: key, Record: healthRecord });
+// 	}
+// 	console.info(allResults);
+// 	return JSON.stringify(allResults);
+// }
+
 	
 	async submitRecord(stub, args) {
 		let UID = ++Id;
-		let healthRecordId = 'D' + args[4] + UID;
-		let patientId = 'P' + args[4] + UID;
+		 let healthRecordId = 'D' + args[4] + UID;
+		 let patientId = 'P' + args[4] + UID;
+		//let healthRecordId = 'D' +  UID;
+		//let patientId = 'P' +  UID;
 
 		let healthRecord = {
 			patientName: args[0],
@@ -124,19 +147,8 @@ let Chaincode = class {
 		} else {
 			let healthRecord = JSON.parse(healthDetailAsBytes);
 
-			healthRecord.patientName.push(args[3]);
-			healthRecord.DOB.push(args[4]);
-			healthRecord.patientMobile.push(args[5]);
-			healthRecord.date.push(args[6]);
-			healthRecord.time.push(args[7]);
-			healthRecord.description.push(args[8]);
-			healthRecord.doctorName.push(args[9]);
-			healthRecord.diagnosis.push(args[10]);
-			healthRecord.testsPerformed.push(args[11]);
-			healthRecord.testResults.push(args[12]);
-			healthRecord.prescribedAction.push(args[13]);
-			healthRecord.prescribedMedication.push(args[14]);
-			healthRecord.doc.push(args[15]);
+			healthRecord.updatedNote = args[3];
+			
 			await stub.putState(args[2], Buffer.from(JSON.stringify(healthRecord)));
 			console.info("Health Record Details Updated Succesfully");
                         return Buffer.from("Health Record Details Updated Succesfully");

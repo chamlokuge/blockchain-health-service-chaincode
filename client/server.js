@@ -15,7 +15,7 @@ res.sendFile('docUpload.html', { root: __dirname});
 });
 
 //Getters
-app.get('/viewRecord', async function (req, res) {
+app.get('/viewRecord/:healthRecordId', async function (req, res) {
  try {
 // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), 'wallet');
@@ -36,9 +36,11 @@ app.get('/viewRecord', async function (req, res) {
 // Get the contract from the network.
         const contract = network.getContract('mycc');
 // Evaluate the specified transaction.
-          const result = await contract.evaluateTransaction('viewRecord',req.query['healthRecordId']);
+         // const result = await contract.evaluateTransaction('viewRecord',req.query['healthRecordId']);
+          const result = await contract.evaluateTransaction('viewRecord',req.params.healthRecordId);
         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
-        res.send(result.toString());
+        res.status(200).json({response: result.toString()});
+        //res.send(result.toString());
 } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({error: error});
@@ -100,7 +102,7 @@ app.post('/updateRecord/', async function (req, res) {
 // Get the contract from the network.
         const contract = network.getContract('mycc');
 // Submit the specified transaction.
-        let result=await contract.submitTransaction('updateRecord', req.body.patientId, req.body.key, req.body.healthRecordId, req.body.doc);
+        let result=await contract.submitTransaction('updateRecord', req.body.adminId, req.body.key, req.body.healthRecordId, req.body.updatedNote);
         console.log(result.toString());
         res.send(result.toString());
 // Disconnect from the gateway.
@@ -227,5 +229,3 @@ app.listen(8080);
 // })
 
 // app.listen(8080);
-
-

@@ -93,7 +93,8 @@
                     Admin Id:<input id="adminId" type="text" /><br />
                     Password: <input id="key" type="password" /><br />
                     Health Record Id:<input id="healthRecordId" type="text" /><br />
-                    Patient Name: <input id="patientName" type="text" /><br />
+                    Updated Note on Health Record:<input id="updatedNote" type="text" /><br />
+                    <!-- Patient Name: <input id="patientName" type="text" /><br />
                     Date of Birth: <input id="DOB" type="text" /><br />
                     Patient Mobile: <input id="patientMobile" type="text" /><br />
                     Date Attended:<input id="date" type="text" /><br />
@@ -105,7 +106,7 @@
                     Test Results: <input id="testResults" type="text" /><br />
                     Prescribed Action:<input id="prescribedAction" type="text" /><br />
                     Prescribed Medication:<input id="prescribedMedication" type="text" /><br />
-                    Document:<input id="doc" type="text" /><br />
+                    Document:<input id="doc" type="text" /><br /> -->
                 </form>
                 <button onclick="updateRecord()">Update Health Details</button>
             </br>
@@ -156,19 +157,8 @@
                     'adminId': document.getElementById('adminId').value,
                     'key': document.getElementById('key').value,
                     'healthRecordId': document.getElementById('healthRecordId').value,
-                    'patientName': document.getElementById('patientName').value,
-                   'DOB': document.getElementById('DOB').value,
-                    'patientMobile':document.getElementById('patientMobile').value,
-                    'date':document.getElementById('date').value,
-                    'time':document.getElementById('time').value,
-                    'description':document.getElementById('description').value,
-                    'doctorName':document.getElementById('doctorName').value,
-                    'diagnosis': document.getElementById('diagnosis').value,
-                   'testsPerformed': document.getElementById('testsPerformed').value,
-                    'testResults':document.getElementById('testResults').value,
-                    'prescribedAction':document.getElementById('prescribedAction').value,
-                    'prescribedMedication':document.getElementById('prescribedMedication').value,
-                    'doc':document.getElementById('doc').value
+                  
+                  'updatedNote': document.getElementById('updatedNote').value
                       },
              success: function(response) {
               alert(response)
@@ -194,7 +184,7 @@
                  alert(response);
              }else{
               let resp = JSON.parse(response);
-            
+                if(typeof resp.updatedNote=="undefined"){
                  let sectionContent= `<table>
    <tr>
     <th>Patient Name</th>
@@ -229,15 +219,51 @@
   </table>`      
 
  document.querySelector('#getResult').innerHTML = sectionContent;
+      }else{
+        let sectionContent= `<table>
+   <tr>
+    <th>Patient Name</th>
+    <th>Date of Birth</th>
+    <th>Patient Mobile</th>
+    <th>Date</th>
+    <th>Time</th>
+    <th>Description</th>
+    <th>Doctor Name</th>
+    <th>Diagnosis</th>
+    <th>Tests Performed</th>
+    <th>Test Results</th>
+    <th>Prescribed Action</th>
+    <th>Prescribed Medication</th>
+    <th>Document</th>
+    <th>Updated Note</th>
+    </tr>
+    <tr>
+    <td>${resp.patientName}</td>
+    <td>${resp.DOB}</td>
+    <td>${resp.patientMobile}</td>
+    <td>${resp.date}</td>
+    <td>${resp.time}</td>
+    <td>${resp.description}</td>
+    <td>${resp.doctorName}</td>
+    <td>${resp.diagnosis}</td>
+    <td>${resp.testsPerformed}</td>
+    <td>${resp.testResults}</td>
+    <td>${resp.prescribedAction}</td>
+    <td>${resp.prescribedMedication}</td>
+    <td>${resp.doc}</td>
+    <td>${resp.updatedNote}</td>
+  </tr>
+  </table>`      
+
+ document.querySelector('#getResult').innerHTML = sectionContent;
       }
-   
+    }
 },
  error: function(xhr) {
   alert('Request Failed. Make Sure the Server is Listening.')
          }
-      });
-    }
-    
-    </script>    
+        });
+      }
+ </script>    
 </body>
 </html>
