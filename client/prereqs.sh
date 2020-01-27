@@ -19,5 +19,5 @@ echo 'Registering User..'
 node registerUser.js User
 
 echo 'All Good..'
-echo 'It is also possible to use API server for querying or invoking apicalls .. Run *node server.js user * and then use localhost:8080'
+echo 'It is also possible to use API server for querying or invoking apicalls .. Run *node server.js user * and then use localhost:7080'
 exit 1

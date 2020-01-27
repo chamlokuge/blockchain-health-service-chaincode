@@ -1,231 +1,54 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var app = express();
-app.use(bodyParser.json());
-app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({ extended: true }));
+const express = require('express')
+const bodyParser = require('body-parser');
 
-// Setting for Hyperledger Fabric
-const { FileSystemWallet, Gateway } = require('fabric-network');
+const { FileSystemWallet } = require('fabric-network');
+const fs = require('fs');
 const path = require('path');
-const ccpPath = path.resolve(__dirname,'..', 'basic-network', 'connection.json');
-let user= process.argv[2];
-app.get('/', function (req, res) {
-res.sendFile('docUpload.html', { root: __dirname});
-});
 
-//Getters
-app.get('/viewRecord/:healthRecordId', async function (req, res) {
- try {
-// Create a new file system based wallet for managing identities.
-        const walletPath = path.join(process.cwd(), 'wallet');
-        const wallet = new FileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
-// Check to see if we've already enrolled the user.
-        const userExists = await wallet.exists(user);
-        if (!userExists) {
-            console.log('An identity for the user '+user+' does not exist in the wallet');
-            console.log('Run the registerUser.js application before retrying');
-            return;
-        }
-// Create a new gateway for connecting to our peer node.
-        const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity:user, discovery: { enabled: true, asLocalhost: true } });
-// Get the network (channel) our contract is deployed to.
-        const network = await gateway.getNetwork('mychannel');
-// Get the contract from the network.
-        const contract = network.getContract('mycc');
-// Evaluate the specified transaction.
-         // const result = await contract.evaluateTransaction('viewRecord',req.query['healthRecordId']);
-          const result = await contract.evaluateTransaction('viewRecord',req.params.healthRecordId);
-        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
-        res.status(200).json({response: result.toString()});
-        //res.send(result.toString());
-} catch (error) {
-        console.error(`Failed to evaluate transaction: ${error}`);
-        res.status(500).json({error: error});
-        process.exit(1);
+const app = express()
+const port = 3000
+
+app.use(bodyParser.json());
+
+app
+.post('/pubkey', 
+(req, res) => 
+    {
+
+        console.log(req.body);
+        saveToWallet(req.body);
+        res.send("success");
+
     }
 
-});
+)
 
-//Setters
-app.post('/submitRecord/', async function (req, res) {
- try {
-// Create a new file system based wallet for managing identities.
-        const walletPath = path.join(process.cwd(), 'wallet');
+async function saveToWallet(key){
+
+    const walletPath = path.join(process.cwd(), 'wallet');
         const wallet = new FileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
-// Check to see if we've already enrolled the user.
+
+        // Collect input parameters
+        // user: who initiates this query, can be anyone in the wallet
+        // filename: the file to be validated
+        const user = key.username
+        const filename = user+"-pub.key"
+
+        // Check to see if we've already enrolled the user.
         const userExists = await wallet.exists(user);
         if (!userExists) {
-            console.log('An identity for the user '+user+' does not exist in the wallet');
+            console.log('An identity for the user ' + user + ' does not exist in the wallet');
             console.log('Run the registerUser.js application before retrying');
             return;
         }
-// Create a new gateway for connecting to our peer node.
-        const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity: user, discovery: { enabled: true, asLocalhost: true } });
-// Get the network (channel) our contract is deployed to.
-        const network = await gateway.getNetwork('mychannel');
-// Get the contract from the network.
-        const contract = network.getContract('mycc');
-// Submit the specified transaction.
-        let result= await contract.submitTransaction('submitRecord', req.body.patientName, req.body.DOB, req.body.patientMobile, req.body.date, req.body.time, req.body.description, req.body.doctorName, req.body.diagnosis, req.body.testsPerformed, req.body.testResults, req.body.prescribedAction, req.body.prescribedMedication, req.body.doc);
-        console.log(result.toString());
-        res.send(result.toString());
-// Disconnect from the gateway.
-        await gateway.disconnect();
-} catch (error) {
-        console.error(`Failed to submit transaction: ${error}`);
-        process.exit(1);
-    } 
-})
-app.post('/updateRecord/', async function (req, res) {
- try {
-// Create a new file system based wallet for managing identities.
-        const walletPath = path.join(process.cwd(), 'wallet');
-        const wallet = new FileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
-// Check to see if we've already enrolled the user.
-        const userExists = await wallet.exists(user);
-        if (!userExists) {
-            console.log('An identity for the user '+user+' does not exist in the wallet');
-            console.log('Run the registerUser.js application before retrying');
-            return;
+        else{
+            fs.writeFile('wallet/'+user+'/'+filename, key.publicKey, (err) => { 
+      
+                // In case of a error throw err. 
+                if (err) throw err; 
+            }) 
         }
-// Create a new gateway for connecting to our peer node.
-        const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity:user, discovery: { enabled: true, asLocalhost: true } });
-// Get the network (channel) our contract is deployed to.
-        const network = await gateway.getNetwork('mychannel');
-// Get the contract from the network.
-        const contract = network.getContract('mycc');
-// Submit the specified transaction.
-        let result=await contract.submitTransaction('updateRecord', req.body.adminId, req.body.key, req.body.healthRecordId, req.body.updatedNote);
-        console.log(result.toString());
-        res.send(result.toString());
-// Disconnect from the gateway.
-        await gateway.disconnect();
-} catch (error) {
-        console.error(`Failed to submit transaction: ${error}`);
-        process.exit(1);
-    } 
-})
 
-app.listen(8080);
+}
 
-// var express = require('express');
-// var bodyParser = require('body-parser');
-// var app = express();
-// app.use(bodyParser.json());
-// app.set('view engine', 'ejs');
-// app.use(bodyParser.urlencoded({ extended: true }));
-
-// // Setting for Hyperledger Fabric
-// const { FileSystemWallet, Gateway } = require('fabric-network');
-// const path = require('path');
-// const ccpPath = path.resolve(__dirname,'..', 'basic-network', 'connection.json');
-// let user= process.argv[2];
-// app.get('/', function (req, res) {
-// res.sendFile('docUpload.html', { root: __dirname});
-// });
-
-// //Getters
-// app.get('/trackConsignment', async function (req, res) {
-//  try {
-// // Create a new file system based wallet for managing identities.
-//         const walletPath = path.join(process.cwd(), 'wallet');
-//         const wallet = new FileSystemWallet(walletPath);
-//         console.log(`Wallet path: ${walletPath}`);
-// // Check to see if we've already enrolled the user.
-//         const userExists = await wallet.exists(user);
-//         if (!userExists) {
-//             console.log('An identity for the user '+user+' does not exist in the wallet');
-//             console.log('Run the registerUser.js application before retrying');
-//             return;
-//         }
-// // Create a new gateway for connecting to our peer node.
-//         const gateway = new Gateway();
-//         await gateway.connect(ccpPath, { wallet, identity:user, discovery: { enabled: true, asLocalhost: true } });
-// // Get the network (channel) our contract is deployed to.
-//         const network = await gateway.getNetwork('mychannel');
-// // Get the contract from the network.
-//         const contract = network.getContract('mycc');
-// // Evaluate the specified transaction.
-//           const result = await contract.evaluateTransaction('trackConsignment',req.query['trackingId']);
-//         console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
-//         res.send(result.toString());
-// } catch (error) {
-//         console.error(`Failed to evaluate transaction: ${error}`);
-//         res.status(500).json({error: error});
-//         process.exit(1);
-//     }
-
-// });
-
-// //Setters
-// app.post('/bookConsignment/', async function (req, res) {
-//  try {
-// // Create a new file system based wallet for managing identities.
-//         const walletPath = path.join(process.cwd(), 'wallet');
-//         const wallet = new FileSystemWallet(walletPath);
-//         console.log(`Wallet path: ${walletPath}`);
-// // Check to see if we've already enrolled the user.
-//         const userExists = await wallet.exists(user);
-//         if (!userExists) {
-//             console.log('An identity for the user '+user+' does not exist in the wallet');
-//             console.log('Run the registerUser.js application before retrying');
-//             return;
-//         }
-// // Create a new gateway for connecting to our peer node.
-//         const gateway = new Gateway();
-//         await gateway.connect(ccpPath, { wallet, identity: user, discovery: { enabled: true, asLocalhost: true } });
-// // Get the network (channel) our contract is deployed to.
-//         const network = await gateway.getNetwork('mychannel');
-// // Get the contract from the network.
-//         const contract = network.getContract('mycc');
-// // Submit the specified transaction.
-//         let result= await contract.submitTransaction('bookConsignment', req.body.from, req.body.to, req.body.consignerName, req.body.consignerAddress, req.body.consignerMobile, req.body.consigneeName, req.body.consigneeAddress, req.body.consigneeMobile,req.body.itemName,req.body.itemWeight, req.body.frieghtCharges, req.body.date);
-//         console.log(result.toString());
-//         res.send(result.toString());
-// // Disconnect from the gateway.
-//         await gateway.disconnect();
-// } catch (error) {
-//         console.error(`Failed to submit transaction: ${error}`);
-//         process.exit(1);
-//     } 
-// })
-// app.post('/updateShipment/', async function (req, res) {
-//  try {
-// // Create a new file system based wallet for managing identities.
-//         const walletPath = path.join(process.cwd(), 'wallet');
-//         const wallet = new FileSystemWallet(walletPath);
-//         console.log(`Wallet path: ${walletPath}`);
-// // Check to see if we've already enrolled the user.
-//         const userExists = await wallet.exists(user);
-//         if (!userExists) {
-//             console.log('An identity for the user '+user+' does not exist in the wallet');
-//             console.log('Run the registerUser.js application before retrying');
-//             return;
-//         }
-// // Create a new gateway for connecting to our peer node.
-//         const gateway = new Gateway();
-//         await gateway.connect(ccpPath, { wallet, identity:user, discovery: { enabled: true, asLocalhost: true } });
-// // Get the network (channel) our contract is deployed to.
-//         const network = await gateway.getNetwork('mychannel');
-// // Get the contract from the network.
-//         const contract = network.getContract('mycc');
-// // Submit the specified transaction.
-//         let result=await contract.submitTransaction('updateShipment', req.body.adminId, req.body.key, req.body.consignmentId, req.body.shipmentDetails);
-//         console.log(result.toString());
-//         res.send(result.toString());
-// // Disconnect from the gateway.
-//         await gateway.disconnect();
-// } catch (error) {
-//         console.error(`Failed to submit transaction: ${error}`);
-//         process.exit(1);
-//     } 
-// })
-
-// app.listen(8080);
+app.listen(port, () => console.log(`App listening on port ${port}!`))

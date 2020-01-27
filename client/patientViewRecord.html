@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta name="viewport" content="height=device-height", initial-scale=0.68">
+    <head>
+        <title>WSO2 Health Service</title>
+        <!-- <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> -->
+        <style>
+            input[type=submit]{background-color: #008CBA;} 
+            input[type=submit]:hover {
+              background-color: #45a049;
+            }
+            input[type=text], input[type=password],select {
+              width:300px;
+              padding: 8px 10px;
+              margin: 8px 0;
+              display: inline-block;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              box-sizing: border-box;
+            }
+            
+            div {
+              border-radius: 5px;
+              background-color: #f2f2f2;
+              padding: 20px;
+              height: 100%;
+            }
+            table {
+              font-family: arial, sans-serif;
+              border-collapse: collapse;
+              width: 100%;
+            }
+            
+            td, th {
+              border: 1px solid #dddddd;
+              text-align: left;
+              padding: 8px;
+            }
+            
+            tr:nth-child(even) {
+              background-color: #dddddd;
+            }
+            button {
+              width: auto;
+              background-color: #4CAF50;
+              color: white;
+              padding: 10px 8px;
+              margin: 8px 0;
+              border: none;
+              border-radius: 10px;
+              cursor: pointer;
+            }
+            button:active {
+                background-color: rgb(0, 81, 125);
+              }
+            .message-box {
+                background-color: rgb(70, 190, 255);
+                width: 350px;
+                text-align: center;
+                border-radius: 10px;
+                margin: 0 auto;
+                padding: 2px;
+            }
+            button:hover {
+                opacity: 0.7;
+            } 
+            </style>
+            <script
+              src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+              <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3.0.0-rc.1/bin/jsencrypt.min.js"></script>
+        <script>
+            function startRead() {
+              var file = document.getElementById('file-input').files[0];
+              
+              if(file){
+                out = getAsText(file);
+              }
+            }
+            
+            function getAsText(readFile) {
+              var reader = new FileReader();
+              reader.readAsText(readFile, "UTF-8");
+            
+              reader.onprogress = updateProgress;
+              reader.onload = loaded;
+              reader.onerror = errorHandler;
+            }
+            
+            function updateProgress(evt) {
+            
+            }
+            
+            function loaded(evt) {
+              var fileString = evt.target.result;
+            
+              document.getElementById('privkey').value = fileString;
+              console.log("privkey: " + document.getElementById('privkey').value);
+            }
+            
+            function errorHandler(evt) {
+              if(evt.target.error.name == "NotReadableError") {
+                // The file could not be read
+              }
+            }
+
+            function decrypt(privateKey,cypherText){
+                var decrypt = new JSEncrypt();
+                decrypt.setPrivateKey(privateKey);
+                return  decrypt.decrypt(cypherText);
+            }
+        </script>
+    </head>
+    <body>
+        <center><h2>View your Health Records here!!</h2></center>
+        <table>
+        <tr>  
+            <td>Your private key file : </td><td><input type="file" id="file-input" name="file-input" size=20 onchange="startRead()"></input></td><td>&nbsp;</td>
+            <input type="text" id="privkey" name="privkey" style="display:none">
+          </tr>
+        </table>
+        <form>
+            Health Record Id : <input id="healthRecordId" placeholder="Enter your Health Record Id here.." type="text" />
+        </form>
+        <button onclick="viewRecord()"> View your Health Record</button>
+        </br>
+        <span id="getResult"></span>
+        <div>
+            <script>
+             function viewRecord(){
+      console.log(document.getElementById('healthRecordId').value)
+       $.ajax({
+           url: "http://localhost:4000/viewRecord/"+document.getElementById('healthRecordId').value,
+           type: "get",
+           success: function(response) {
+             if (response=="Error: Item with this Id doesn't exist..!"|| response=="Not a health record"){
+                 let sectionsContent = ''
+                 document.querySelector('#getResult').innerHTML = sectionsContent;
+                 alert(response);
+             }else{
+               console.log(response)
+              let resp = JSON.parse(response.response);
+
+              resp.doc=decrypt(document.getElementById('privkey').value,resp.doc)
+
+                if(typeof resp.updatedNote=="undefined"){
+                 let sectionContent= `<table>
+   <tr>
+    <th>Patient Name</th>
+    <th>Date of Birth</th>
+    <th>Patient Mobile</th>
+    <th>Date</th>
+    <th>Time</th>
+    <th>Description</th>
+    <th>Doctor Name</th>
+    <th>Diagnosis</th>
+    <th>Tests Performed</th>
+    <th>Test Results</th>
+    <th>Prescribed Action</th>
+    <th>Prescribed Medication</th>
+    <th>Document</th>
+    </tr>
+    <tr>
+    <td>${resp.patientName}</td>
+    <td>${resp.DOB}</td>
+    <td>${resp.patientMobile}</td>
+    <td>${resp.date}</td>
+    <td>${resp.time}</td>
+    <td>${resp.description}</td>
+    <td>${resp.doctorName}</td>
+    <td>${resp.diagnosis}</td>
+    <td>${resp.testsPerformed}</td>
+    <td>${resp.testResults}</td>
+    <td>${resp.prescribedAction}</td>
+    <td>${resp.prescribedMedication}</td>
+    <td>${resp.doc}</td>
+  </tr>
+  </table>`      
+
+ document.querySelector('#getResult').innerHTML = sectionContent;
+      }else{
+        let sectionContent= `<table>
+   <tr>
+    <th>Patient Name</th>
+    <th>Date of Birth</th>
+    <th>Patient Mobile</th>
+    <th>Date</th>
+    <th>Time</th>
+    <th>Description</th>
+    <th>Doctor Name</th>
+    <th>Diagnosis</th>
+    <th>Tests Performed</th>
+    <th>Test Results</th>
+    <th>Prescribed Action</th>
+    <th>Prescribed Medication</th>
+    <th>Document</th>
+    <th>Updated Note</th>
+    </tr>
+    <tr>
+    <td>${resp.patientName}</td>
+    <td>${resp.DOB}</td>
+    <td>${resp.patientMobile}</td>
+    <td>${resp.date}</td>
+    <td>${resp.time}</td>
+    <td>${resp.description}</td>
+    <td>${resp.doctorName}</td>
+    <td>${resp.diagnosis}</td>
+    <td>${resp.testsPerformed}</td>
+    <td>${resp.testResults}</td>
+    <td>${resp.prescribedAction}</td>
+    <td>${resp.prescribedMedication}</td>
+    <td>${resp.doc}</td>
+    <td>${resp.updatedNote}</td>
+  </tr>
+  </table>`      
+
+ document.querySelector('#getResult').innerHTML = sectionContent;
+      }
+    }
+},
+ error: function(xhr) {
+  alert('Request Failed. Make Sure the Server is Listening.')
+         }
+        });
+      }
+            </script>
+        </div>
+    </body>
+</html>

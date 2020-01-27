@@ -3,6 +3,7 @@
     <meta name="viewport" content="height=device-height, initial-scale=0.68">
     <head> 
         <title>WSO2 Health Service</title>
+        <!-- <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> -->
         <style>
                 input[type=submit]{background-color: #008CBA;} 
                 input[type=submit]:hover {
@@ -112,7 +113,7 @@
             </br>
                 <h2>View Health Details</h2>
                 <form>
-                    Health Record Id: <input id="healthRecordId" placeholder="Enter your Health Record ID " type="text" />
+                    Health Record Id: <input id="healthRecordIdV" placeholder="Enter your Health Record ID " type="text" />
                 </form>
                 <button onclick="viewRecord()">View Record</button>
             </br>
@@ -123,7 +124,7 @@
             $.ajax({
                 type: "post",
                 contentType: "application/x-www-form-urlencoded",
-                url: 'http://localhost:8080/submitRecord/',
+                url: 'http://localhost:7080/submitRecord/',
                 data: {
                     'patientName': document.getElementById('patientName').value,
                    'DOB': document.getElementById('DOB').value,
@@ -152,7 +153,7 @@
             $.ajax({
                 type: "post",
                 contentType: "application/x-www-form-urlencoded",
-                url: 'http://localhost:8080/updateRecord/',
+                url: 'http://localhost:7080/updateRecord/',
                 data: {
                     'adminId': document.getElementById('adminId').value,
                     'key': document.getElementById('key').value,
@@ -171,19 +172,18 @@
    }
 
    function viewRecord(){
+      console.log(document.getElementById('healthRecordId').value)
        $.ajax({
-           url: "http://localhost:8080/viewRecord/",
+           url: "http://localhost:7080/viewRecord/"+document.getElementById('healthRecordIdV').value,
            type: "get",
-           data: {
-               'healthRecordId' :document.getElementById('healthRecordId').value
-           },
            success: function(response) {
              if (response=="Error: Item with this Id doesn't exist..!"|| response=="Not a health record"){
                  let sectionsContent = ''
                  document.querySelector('#getResult').innerHTML = sectionsContent;
                  alert(response);
              }else{
-              let resp = JSON.parse(response);
+               console.log(response)
+              let resp = JSON.parse(response.response);
                 if(typeof resp.updatedNote=="undefined"){
                  let sectionContent= `<table>
    <tr>
