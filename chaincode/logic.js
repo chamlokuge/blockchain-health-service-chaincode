@@ -6,29 +6,28 @@ let Chaincode = class {
 
 	async Init(stub, args) {
 		try {
-                 let ret = stub.getFunctionAndParameters();
-                 console.info(ret);
-                 let arg= ret.params;
+            let ret = stub.getFunctionAndParameters();
+            console.info(ret);
+            let arg= ret.params;
 			let adminData = {
 			adminId: arg[0],
-                        Type:'admin',
+            Type:'admin',
 			AccessKey: arg[1],
 			Name: arg[2]
 		}
 		await stub.putState(arg[0], Buffer.from(JSON.stringify(adminData)));
 		console.info('===Admin Added ===');
 
-                return shim.success();
-		} catch (err) {
+        return shim.success();
+		}
+		catch (err) {
 			console.log(err);
 			return shim.error(err);
 		}
-
-     }
+	}
 	async Invoke(stub) {
 		let ret = stub.getFunctionAndParameters();
 		console.info(ret);
-
 		let method = this[ret.fcn];
 		if (!method) {
 			console.error('no function of name:' + ret.fcn + ' found');
@@ -37,7 +36,8 @@ let Chaincode = class {
 		try {
 			let payload = await method(stub, ret.params);
 			return shim.success(payload);
-		} catch (err) {
+		} 
+		catch (err) {
 			console.log(err);
 			return shim.error(err);
 		}
@@ -50,17 +50,14 @@ let Chaincode = class {
 		}
 		let healthRecordCheck = JSON.parse(healthDetailAsBytes);
 		if (healthRecordCheck.Type!= 'healthRecord') {
-
-			return Buffer.from('Error:Not a HealthRecord.!');
-
-		} else {
-
+		return Buffer.from('Error:Not a HealthRecord.!');
+		}
+		else {
 			let healthRecord = JSON.parse(healthDetailAsBytes.toString());
 			console.log(healthRecord);
 			return healthDetailAsBytes;
-
 		}
-}
+	}
 
 // 	async queryAllHealthRecords(stub, args) {
 // 		// const startKey = 'D' + args[4] + '1';
@@ -86,10 +83,8 @@ let Chaincode = class {
 	
 	async submitRecord(stub, args) {
 		let UID = ++Id;
-		 let healthRecordId = 'D' + args[4] + UID;
-		 let patientId = 'P' + args[4] + UID;
-		//let healthRecordId = 'D' +  UID;
-		//let patientId = 'P' +  UID;
+		let healthRecordId = 'D' + args[4] + UID;
+		let patientId = 'P' + args[4] + UID;
 
 		let healthRecord = {
 			patientName: args[0],
@@ -116,46 +111,36 @@ let Chaincode = class {
 			Type: 'healthRecord',
 			patientMobile: args[2],
 			description: [5]
-			//CurrentLocation: 'Not Yet Shipped'
 		};
 
 		await stub.putState(patientId, Buffer.from(JSON.stringify(patientData)));
 		await stub.putState(healthRecordId, Buffer.from(JSON.stringify(healthRecord)));
 		console.info("Health Details Added Succesfully.. Your Health Record Id is " + healthRecordId + " And Patient Id is " + patientId);
 		return Buffer.from("Health Details Added Succesfully.. Your Health Record Id is " + healthRecordId + " And Patient Id is " + patientId);
-
-
 	}
 
 	async updateRecord(stub, args) {
 
 		let adminAsBytes = await stub.getState(args[0]);
 		let healthDetailAsBytes = await stub.getState(args[2]);
-
 		if (!adminAsBytes || adminAsBytes.toString().length <= 0) {
 			return Buffer.from('Incorrect Admin Id.!');
 		}
 		let admin = JSON.parse(adminAsBytes);
-
 		if (admin.AccessKey != args[1]) {
-
 			return Buffer.from("Incorrect AccessKey.!");
 		}
-
 		if (!healthDetailAsBytes || healthDetailAsBytes.toString().length <= 0) {
 			return Buffer.from('Health Record with this ID does not exist');
 		} else {
 			let healthRecord = JSON.parse(healthDetailAsBytes);
-
 			healthRecord.updatedNote = args[3];
-			
 			await stub.putState(args[2], Buffer.from(JSON.stringify(healthRecord)));
 			console.info("Health Record Details Updated Succesfully");
-                        return Buffer.from("Health Record Details Updated Succesfully");
-
+        	return Buffer.from("Health Record Details Updated Succesfully");
+			}
 		}
 	}
-}
 
 shim.start(new Chaincode());
 

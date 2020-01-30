@@ -10,14 +10,4 @@ npm install
 
 rm -rf wallet
 
-echo 'Enrolling Admin...'
-
-node enrollAdmin.js
-
-echo 'Registering User..'
-
-node registerUser.js User
-
-echo 'All Good..'
-echo 'It is also possible to use API server for querying or invoking apicalls .. Run *node server.js user * and then use localhost:7080'
 exit 1

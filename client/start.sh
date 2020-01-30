@@ -1,3 +1,5 @@
+rm -rf wallet
+
 echo "Removing key from key store..."
 
 rm -rf ./hfc-key-store
@@ -7,6 +9,8 @@ docker rmi -f dev-peer0.org1.example.com-mycc-1.0-384f11f484b9302df90b453200cfb2
 sleep 2
 
 cd ../basic-network
+./teardown.sh
+./stop.sh
 ./start.sh
 
 # Now launch the CLI container in order to install, instantiate chaincode
@@ -14,41 +18,19 @@ cd ../basic-network
 docker-compose -f ./docker-compose.yml up -d cli
 docker ps -a
 
+sleep 2
 
+cd ../client
 
-echo 'Installing chaincode..'
-docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode install -n mycc -v 1.0 -p "/opt/gopath/src/github.com/" -l "node"
+echo 'Enrolling Admin...'
 
-echo 'Instantiating chaincode..'
-#docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode instantiate -o orderer.example.com:7050 -C mychannel -n mycc -l "node" -v 1.0 -c '{"Args":["Init","salman279","12345","SalmanDev","+915487389277"]}'
-docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode instantiate -o orderer.example.com:7050 -C mychannel -n mycc -l "node" -v 1.0 -c '{"Args":["Init","alice123","123","alice"]}'
-echo 'Getting things ready for Chaincode Invocation..should take only 10 seconds..'
-sleep 10
-echo 'Adding Health Details..'
+node enrollAdmin.js
 
-docker exec -e “CORE_PEER_LOCALMSPID=Org1MSP” -e “CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp” cli peer chaincode invoke -o orderer.example.com:7050 -C mychannel -n mycc -c '{"function":"bookConsignment","Args":["Guntur","Hyderabad","KiranKumar","6-14/7C,Mill Road, Guntur","91697737397","Kalpana","2-14/A,Near Mandal Office,Hyderabad","91467683763","DoubleCot Bed","250Kg","525","16/10/19"]}'
+echo 'Registering User..'
 
-sleep 5
-echo 'Querying Invoice.. and Tracking..'
+node registerUser.js alice
+node registerUser.js bob
 
-docker exec -e “CORE_PEER_LOCALMSPID=Org1MSP” -e “CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp” cli peer chaincode query -o orderer.example.com:7050 -C mychannel -n mycc -c '{"function":"trackConsignment","Args":["I916977373971"]}'
-
-
-docker exec -e “CORE_PEER_LOCALMSPID=Org1MSP” -e “CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp” cli peer chaincode query -o orderer.example.com:7050 -C mychannel -n mycc -c '{"function":"trackConsignment","Args":["T914676837631"]}'
-sleep 5 
-
-echo 'Updating Shipment '
-
-docker exec -e “CORE_PEER_LOCALMSPID=Org1MSP” -e “CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp” cli peer chaincode invoke -o orderer.example.com:7050 -C mychannel -n mycc -c '{"function":"updateShipment","Args":["salman279","12345","T914676837631","Reached Suryapet"]}'
-sleep 3
-docker exec -e “CORE_PEER_LOCALMSPID=Org1MSP” -e “CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp” cli peer chaincode invoke -o orderer.example.com:7050 -C mychannel -n mycc -c '{"function":"updateShipment","Args":["salman279","12345","T914676837631","Reached Destination Port"]}'
-
-sleep 5
-echo "querying Again To track.."
-docker exec -e “CORE_PEER_LOCALMSPID=Org1MSP” -e “CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp” cli peer chaincode query -o orderer.example.com:7050 -C mychannel -n mycc -c '{"function":"trackConsignment","Args":["T914676837631"]}'
-sleep 5
-# Starting docker logs of chaincode container
-
-# sudo docker logs -f dev-peer0.org1.example.com-mycc-1.0
-
+echo 'All Good..'
+echo 'It is also possible to use API server for querying or invoking apicalls .. Run *node server.js user * and then use localhost:7080'
 

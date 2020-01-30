@@ -1,18 +1,3 @@
-echo "Removing key from key store..."
-
-rm -rf ./hfc-key-store
-
-# Remove chaincode docker image
-docker rmi -f dev-peer0.org1.example.com-mycc-1.0-384f11f484b9302df90b453200cfb25174305fce8f53f4e94d45ee3b6cab0ce9
-sleep 2
-
-cd ../basic-network
-./start.sh
-
-# Now launch the CLI container in order to install, instantiate chaincode
-docker-compose -f ./docker-compose.yml up -d cli
-docker ps -a
-
 echo 'Installing chaincode..'
 docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode install -n mycc -v 1.0 -p "/opt/gopath/src/github.com/" -l "node"
 
