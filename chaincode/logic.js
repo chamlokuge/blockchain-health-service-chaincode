@@ -59,28 +59,6 @@ let Chaincode = class {
 		}
 	}
 
-// 	async queryAllHealthRecords(stub, args) {
-// 		// const startKey = 'D' + args[4] + '1';
-// 		// const endKey = 'D' + args[4] + '999';
-// 		const startKey = 'D1';
-// 		const endKey = 'D999999';
-// 		const allResults = [];
-// 		for await (const {key, value} of stub.getStateByRange(startKey, endKey)) {
-// 		const strValue = Buffer.from(value).toString('utf8');
-// 		let healthRecord;
-// 		try {
-// 			healthRecord = JSON.parse(strValue);
-// 		} catch (err) {
-// 			console.log(err);
-// 			healthRecord = strValue;
-// 		}
-// 		allResults.push({ Key: key, Record: healthRecord });
-// 	}
-// 	console.info(allResults);
-// 	return JSON.stringify(allResults);
-// }
-
-	
 	async submitRecord(stub, args) {
 		let UID = ++Id;
 		let healthRecordId = 'D' + args[4] + UID;
