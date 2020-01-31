@@ -1,0 +1,13 @@
+# An Implementation of a Blockchain-based Health Service in Hyperledger Fabric
+This project uses Hyperledger Fabric 1.4.3 in the implemention.
+
+**Prerequisites in accordance with hyperledger fabric v1.4 documentation**  (https://hyperledger-fabric.readthedocs.io/en/release-1.4/prereqs.html )
+1. curl latest version
+2. docker version 17.06.2-ce or greater
+3. docker compose version 1.14.0 or greater
+4. golang version 1.11.x
+5. nodejs version 8.x
+6. npm version 5.x
+7. python
+
+'Basic network' in the fabric samples can be used in setting up of the fabric environment.
