@@ -10,4 +10,20 @@ This project uses Hyperledger Fabric 1.4.3 in the implemention.
 6. npm version 5.x
 7. python
 
-'Basic network' in the fabric samples can be used in setting up of the fabric environment.
+'Basic network' in the fabric samples can be used in setting up of the fabric environment.  
+  
+ Let install the prerequisites.  
+```
+  cd /client/
+  ./prereqs.sh 
+ ```  
+ Let rebuild a new environment by setting up the fabric network.  
+```
+  cd /client    
+  ./start.sh     
+ ```  
+ Let install and instantiate the chaincode to interact with the ledger.  
+```
+  cd /client  
+  ./startHealthService.sh    
+ ```
