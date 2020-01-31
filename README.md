@@ -35,7 +35,8 @@ node server.js
  ``` 
  ```
 node serverPatient.js alice  
- ``` ```
+ ```  
+ ```
 node serverDoctor.js bob     
  ``` 
 
